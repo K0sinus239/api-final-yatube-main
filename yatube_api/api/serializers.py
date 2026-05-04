@@ -8,6 +8,7 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = "__all__"
         model = Group
 
+
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
