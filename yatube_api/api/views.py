@@ -16,7 +16,6 @@ class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
     pagination_class = LimitOffsetPagination
-    
 
 
 class CommentViewSet(viewsets.ModelViewSet):
