@@ -20,7 +20,7 @@ class Group(models.Model):
 
     def __str__(self):
         return self.title
-    
+
 
 class Post(models.Model):
     text = models.TextField()
@@ -38,6 +38,7 @@ class Post(models.Model):
         null=True,
         blank=True,
     )
+
 
 class Comment(models.Model):
     author = models.ForeignKey(
