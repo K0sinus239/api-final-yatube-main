@@ -2,6 +2,9 @@ from rest_framework import serializers
 
 from posts.models import Comment, Post, Group, Follow
 
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,8 +37,12 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(
+        slug_field="username",
         read_only=True,
-        slug_field="username"
+    )
+    following = serializers.SlugRelatedField(   # ← добавь поле
+        slug_field="username",
+        queryset=User.objects.all(),
     )
 
     class Meta:
