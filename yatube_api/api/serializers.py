@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         fields = "__all__"
