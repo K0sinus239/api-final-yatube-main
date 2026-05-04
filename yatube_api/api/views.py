@@ -11,17 +11,13 @@ from api.serializers import (
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    """
-    GET /api/v1/posts/ — список постов с пагинацией
-    POST /api/v1/posts/ — создание поста (только авторизованные)
-    GET /api/v1/posts/{id}/ — детали поста
-    PUT/PATCH /api/v1/posts/{id}/ — обновление поста (только автор)
-    DELETE /api/v1/posts/{id}/ — удаление поста (только автор)
-    """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
     pagination_class = LimitOffsetPagination
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -55,14 +51,11 @@ class FollowViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
 ):
-    """
-    GET /api/v1/follow/ — подписки пользователя
-    POST /api/v1/follow/ — подписка на пользователя
-    """
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("following__username",)
+    pagination_class = None   # ← отключаем пагинацию здесь
 
     def get_queryset(self):
         return Follow.objects.filter(user=self.request.user)
