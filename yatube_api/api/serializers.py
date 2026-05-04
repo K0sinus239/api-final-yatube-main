@@ -41,7 +41,7 @@ class FollowSerializer(serializers.ModelSerializer):
         slug_field="username",
         read_only=True,
     )
-    following = serializers.SlugRelatedField(   # ← добавь поле
+    following = serializers.SlugRelatedField(
         slug_field="username",
         queryset=User.objects.all(),
     )
@@ -49,3 +49,11 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ("user", "following")
         model = Follow
+
+    def create(self, validated_data):
+        try:
+            return super().create(validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError(
+                {"following": "Подписка на этого пользователя уже существует."}
+            )
