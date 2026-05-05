@@ -1,65 +1,69 @@
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, mixins, filters
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import (
+    IsAuthenticatedOrReadOnly,
+    IsAuthenticated,
+)
 
-from posts.models import Comment, Post, Group, Follow
-
-User = get_user_model()
-
-
-class GroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = "__all__"
-        model = Group
-
-
-class PostSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field="username",
-    )
-    pub_date = serializers.ReadOnlyField()
-
-    class Meta:
-        fields = ("id", "author", "text", "pub_date", "image", "group")
-        model = Post
-        read_only_fields = ("author", "pub_date")
+from api.permissions import IsAuthorOrReadOnly
+from posts.models import Post, Group
+from api.serializers import (
+    PostSerializer,
+    CommentSerializer,
+    GroupSerializer,
+    FollowSerializer,
+)
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field="username",
-    )
+class PostViewSet(ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
+    pagination_class = LimitOffsetPagination
 
-    class Meta:
-        fields = "__all__"
-        model = Comment
-        read_only_fields = ("author", "post")
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
-class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
-        slug_field="username",
-        read_only=True,
-    )
-    following = serializers.SlugRelatedField(
-        slug_field="username",
-        queryset=User.objects.all(),
-    )
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
 
-    class Meta:
-        fields = ("user", "following")
-        model = Follow
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=("user", "following"),
-                message="Подписка на этого пользователя уже существует.",
-            ),
-        ]
+    def get_post(self):
+        post_id = self.kwargs.get("post_id")
+        return get_object_or_404(Post, pk=post_id)
 
-    def validate_following(self, value):
-        if value == self.context["request"].user:
-            raise serializers.ValidationError("Нельзя подписаться на себя.")
-        return value
+    def perform_create(self, serializer):
+        post = self.get_post()
+        serializer.save(author=self.request.user, post=post)
+
+    def get_queryset(self):
+        post = self.get_post()
+        return post.comments.all()
+
+
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    pagination_class = None
+
+
+class FollowViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = FollowSerializer
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ("following__username",)
+    pagination_class = None
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.follower.all()
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

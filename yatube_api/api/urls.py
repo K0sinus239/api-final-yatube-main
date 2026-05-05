@@ -1,11 +1,11 @@
-from django.urls import path, include, re_path
+from django.urls import path, re_path, include
 from rest_framework.routers import DefaultRouter
 
 from api.views import (
     PostViewSet,
+    CommentViewSet,
     GroupViewSet,
     FollowViewSet,
-    CommentViewSet,
 )
 
 v1_router = DefaultRouter()
