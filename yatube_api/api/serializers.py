@@ -1,10 +1,9 @@
-from django.db import IntegrityError
-
+from django.contrib.auth import get_user_model
+from django.db import models
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from posts.models import Comment, Post, Group, Follow
-
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -18,18 +17,20 @@ class GroupSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
-        slug_field="username"
+        slug_field="username",
     )
+    pub_date = serializers.ReadOnlyField()
 
     class Meta:
-        fields = "__all__"
+        fields = ("id", "author", "text", "pub_date", "image", "group")
         model = Post
+        read_only_fields = ("author", "pub_date")
 
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
-        slug_field="username"
+        slug_field="username",
     )
 
     class Meta:
@@ -51,11 +52,15 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ("user", "following")
         model = Follow
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=("user", "following"),
+                message="Подписка на этого пользователя уже существует.",
+            ),
+        ]
 
-    def create(self, validated_data):
-        try:
-            return super().create(validated_data)
-        except IntegrityError:
-            raise serializers.ValidationError(
-                {"following": "Подписка на этого пользователя уже существует."}
-            )
+    def validate_following(self, value):
+        if value == self.context["request"].user:
+            raise serializers.ValidationError("Нельзя подписаться на себя.")
+        return value

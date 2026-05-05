@@ -39,6 +39,9 @@ class Post(models.Model):
         blank=True,
     )
 
+    class Meta:
+        ordering = ("-pub_date",)
+
 
 class Comment(models.Model):
     author = models.ForeignKey(
