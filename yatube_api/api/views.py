@@ -72,7 +72,8 @@ class FollowViewSet(
         user = self.request.user
         if Follow.objects.filter(user=user, following=following).exists():
             raise serializers.ValidationError(
-                {"following": ["Подписка на этого пользователя уже существует."]}
+                {"following":
+                 ["Подписка на этого пользователя уже существует."]}
             )
         if following == user:
             raise serializers.ValidationError(
