@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from posts.models import Comment, Post, Group, Follow
 
@@ -51,8 +50,6 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ("user", "following")
         model = Follow
-        # Удалить UniqueTogetherValidator
-        # validators = [...]
 
     def validate_following(self, value):
         if value == self.context["request"].user:
