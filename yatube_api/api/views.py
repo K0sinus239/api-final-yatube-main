@@ -66,4 +66,14 @@ class FollowViewSet(
         return user.follower.all()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        following = serializer.validated_data["following"]
+        user = self.request.user
+        if Follow.objects.filter(user=user, following=following).exists():
+            raise serializers.ValidationError(
+                {"following": ["Подписка на этого пользователя уже существует."]}
+            )
+        if following == user:
+            raise serializers.ValidationError(
+                {"following": ["Нельзя подписаться на себя."]}
+            )
+        serializer.save(user=user)
