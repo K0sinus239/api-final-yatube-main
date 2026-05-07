@@ -41,6 +41,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class FollowSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(
         slug_field="username",
+        read_only=True,
     )
     following = serializers.SlugRelatedField(
         slug_field="username",
