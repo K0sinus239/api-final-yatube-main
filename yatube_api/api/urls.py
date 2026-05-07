@@ -16,23 +16,4 @@ v1_router.register("comments", CommentViewSet, basename="comments")
 
 urlpatterns = [
     path("", include(v1_router.urls)),
-    re_path(
-        r"^posts/(?P<post_id>\d+)/comments/$",
-        CommentViewSet.as_view(
-            {"get": "list", "post": "create"}
-        ),
-        name="post-comments-list",
-    ),
-    re_path(
-        r"^posts/(?P<post_id>\d+)/comments/(?P<pk>\d+)/$",
-        CommentViewSet.as_view(
-            {
-                "get": "retrieve",
-                "put": "update",
-                "patch": "partial_update",
-                "delete": "destroy",
-            }
-        ),
-        name="post-comments-detail",
-    ),
 ]
