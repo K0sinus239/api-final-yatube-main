@@ -39,12 +39,13 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    
     user = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
         slug_field="username",
         read_only=True,
     )
     following = serializers.SlugRelatedField(
-        default=serializers.CurrentUserDefault()
         slug_field="username",
         queryset=User.objects.all(),
     )
