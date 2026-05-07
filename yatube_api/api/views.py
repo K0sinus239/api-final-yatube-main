@@ -9,7 +9,7 @@ from rest_framework.permissions import (
 
 from api.permissions import IsAuthorOrReadOnly
 
-from posts.models import Post, Group
+from posts.models import Post, Group, Comment
 from api.serializers import (
     PostSerializer,
     CommentSerializer,
